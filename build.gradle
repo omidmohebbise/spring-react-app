@@ -18,7 +18,11 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-graphql'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
@@ -26,9 +30,29 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-generateJava {
-    schemaPaths = ["${projectDir}/src/main/resources/graphql-client"]
-    packageName = 'org.omidmohebbise.graphql.pringreactjsgraphql.codegen'
-    generateClient = true
+task buildReact(type: Exec) {
+    workingDir 'react-application'
+    commandLine 'npm', 'run', 'build'
 }
 
+task copyReactBuild(type: Copy) {
+    dependsOn 'buildReact'
+    from 'react-application/build'
+    into 'src/main/resources/static'
+}
+processResources.dependsOn copyReactBuild
+
+
+// Task to build the JAR file
+bootJar {
+    dependsOn 'copyReactBuild'
+    archiveFileName = 'spring-graphql.jar'
+}
+
+// Specify dependencies for the tasks
+build {
+    dependsOn 'bootJar'
+}
+
+// Set default tasks
+defaultTasks 'build'
