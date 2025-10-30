@@ -1,8 +1,7 @@
 import React from 'react';
 import './App.css';
 import PersonManagement from "./person-mng/person-management";
-import 'bootstrap/dist/css/bootstrap.min.css';
-
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 function App() {
     return (

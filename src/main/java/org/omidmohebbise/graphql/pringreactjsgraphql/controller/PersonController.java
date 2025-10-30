@@ -1,47 +1,45 @@
 package org.omidmohebbise.graphql.pringreactjsgraphql.controller;
 
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.omidmohebbise.graphql.pringreactjsgraphql.model.Person;
 import org.omidmohebbise.graphql.pringreactjsgraphql.service.PersonService;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/persons")
 public class PersonController {
 
     private final PersonService personService;
 
-    @QueryMapping
+    @GetMapping
     public List<Person> findAll() {
         return personService.findAll();
     }
 
-
-    @MutationMapping
-    public Person createPerson(@Argument String firstName, @Argument String lastName, @Argument int age
-    ) {
-        return personService.add(firstName, lastName, age);
+    @PostMapping
+    public Person createPerson(@RequestBody PersonDto personDto) {
+        return personService.add(personDto.firstName(), personDto.lastName(), personDto.age());
     }
 
-    @MutationMapping()
-    public Boolean updatePerson(@Argument int id, @Argument String firstName, @Argument String lastName, @Argument int age
-    ) {
-        return personService.update(id, firstName, lastName, age);
+    @PutMapping("/{id}")
+    public Boolean updatePerson(@PathVariable Integer id, @RequestBody PersonDto personDto) {
+        return personService.update(id, personDto.firstName(), personDto.lastName(), personDto.age());
     }
 
-    @MutationMapping
-    public Boolean deletePerson(@Argument int id) {
+    @DeleteMapping("/{id}")
+    public Boolean deletePerson(@PathVariable Integer id) {
         return personService.delete(id);
     }
-
 
 }

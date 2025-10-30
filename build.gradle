@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.1'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'com.netflix.dgs.codegen' version '6.0.3'
 }
 
@@ -9,8 +9,11 @@ group = 'org.omidmohebbise.graphql'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '17'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
+
 
 repositories {
     mavenCentral()
@@ -20,7 +23,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-graphql'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -30,27 +32,26 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-task buildReact(type: Exec) {
+tasks.register('buildUI', Exec) {
     workingDir 'react-application'
-    commandLine 'npm', 'run', 'build'
+    commandLine 'bash', 'build.sh'
 }
 
-task copyReactBuild(type: Copy) {
-    dependsOn 'buildReact'
-    from 'react-application/build'
-    into 'src/main/resources/static'
+tasks.register('copyUI', Exec) {
+    workingDir 'react-application'
+    commandLine 'bash', 'copy.sh'
 }
-processResources.dependsOn copyReactBuild
-
 
 // Task to build the JAR file
 bootJar {
-    dependsOn 'copyReactBuild'
+    dependsOn 'copyUI'
     archiveFileName = 'spring-graphql.jar'
 }
 
 // Specify dependencies for the tasks
 build {
+    dependsOn("buildUI")
+    dependsOn("copyUI")
     dependsOn 'bootJar'
 }
 

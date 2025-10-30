@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 
 import Person from "../model/PersonModel";
-import {createPerson, deletePersonAPI, getAllPersons, updatePerson} from "../api-queries/person-queries-axios";
+import {createPerson, deletePerson, getAllPersons, updatePerson} from "../api-queries/person-api";
 
 const PersonManagement: React.FC = () => {
     const [data, setData] = useState<Person[]>([]);
@@ -13,16 +13,19 @@ const PersonManagement: React.FC = () => {
     }
 
     function findAll() {
-        getAllPersons((fetchedData: Person[]) => {
-            setData(fetchedData)
-        }, (error: any) => {
-            console.log(error);
-        });
+        getAllPersons()
+            .then((fetchedData: Person[]) => {
+                setData(fetchedData);
+            })
+            .catch((error: any) => {
+                console.log(error);
+            });
     }
 
     useEffect(() => {
         findAll();
     }, []);
+
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
         setNewPerson({
@@ -34,24 +37,23 @@ const PersonManagement: React.FC = () => {
 
     function savePerson(): void {
         if(editMode){
-            updatePerson(newPerson, () => {
-                findAll()
-                setNewPerson(getInitialPersonState())
-                setEditMode(false)
-            })
+            updatePerson(newPerson.id, newPerson).then(() => {
+                findAll();
+                setNewPerson(getInitialPersonState());
+                setEditMode(false);
+            });
         }else {
-            createPerson(newPerson, () => {
-                    findAll()
-                    setNewPerson(getInitialPersonState())
-                }
-                , console.log(data))
+            createPerson(newPerson).then(() => {
+                findAll();
+                setNewPerson(getInitialPersonState());
+                setEditMode(false);
+            });
         }
 
     }
 
-    function deletePerson(id: number): void {
-        deletePersonAPI(id,
-            () => findAll())
+    function deletePersonHandler(id: number): void {
+        deletePerson(id).then(() => findAll());
     }
 
     function editPerson(person: Person): void {
@@ -116,7 +118,7 @@ const PersonManagement: React.FC = () => {
                             <td>{user.age}</td>
                             <td>
                                 <button type="button" className="btn btn-danger mx-1"
-                                        onClick={() => deletePerson(user.id)}
+                                        onClick={() => deletePersonHandler(user.id)}
                                 >Delete
                                 </button>
                                 <button type="button" className="btn btn-warning"
